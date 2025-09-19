@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 Super Learning Adventure - Catch the Answer!</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, Arial, sans-serif;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    h1 { 
+      color: #2c3e50; 
+      font-size: 2.5em;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    
+    .btn {
+      background: linear-gradient(45deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      margin: 8px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+    
+    .btn:hover { 
+      background: linear-gradient(45deg, #2980b9, #3498db);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    
+    #gameBox, #teacherDashboard { display: none; }
+    
+    .question { 
+      font-size: 28px; 
+      margin: 20px 0; 
+      font-weight: bold;
+      color: #2c3e50;
+      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    
+    .score { 
+      font-size: 24px; 
+      color: #27ae60; 
+      margin-top: 20px; 
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .dashboard {
+      background: rgba(255,255,255,0.95); 
+      padding: 25px; 
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      margin: 15px auto;
+      width: 70%;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+    }
+    
+    th, td {
+      padding: 12px;
+      border: 2px solid #ecf0f1;
+      text-align: center;
+    }
+    
+    th {
+      background: linear-gradient(45deg, #3498db, #2980b9);
+      color: white;
+      font-weight: bold;
+    }
+    
+    /* Enhanced Game Container */
+    #gameContainer {
+      position: relative;
+      width: 85%;
+      height: 450px;
+      margin: 25px auto;
+      border: 5px solid #3498db;
+      border-radius: 25px;
+      background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 50%, #FFE4B5 100%);
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    
+    /* PLAIN ANSWERS - No special colors initially */
+    .fallingAnswer {
+      position: absolute;
+      background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 20px;
+      min-width: 100px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      border: 3px solid #fff;
+      animation: sparkle 2s infinite;
+    }
+    
+    @keyframes sparkle {
+      0%, 100% { box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
+      50% { box-shadow: 0 8px 16px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.8); }
+    }
+    
+    .fallingAnswer:hover {
+      transform: scale(1.15) rotate(5deg);
+      background: linear-gradient(45deg, #7f8c8d, #95a5a6);
+    }
+    
+    /* Styles for when answers are revealed (only after wrong answer) */
+    .revealedCorrectAnswer {
+      background: linear-gradient(45deg, #27ae60, #2ecc71) !important;
+      transform: scale(1.2) !important;
+      animation: correctReveal 2s ease-in-out !important;
+      border: 4px solid #f1c40f !important;
+      box-shadow: 0 0 30px rgba(39,174,96,0.8) !important;
+    }
+    
+    .revealedWrongAnswer {
+      background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+      transform: scale(0.9) !important;
+      opacity: 0.7;
+      animation: wrongReveal 1s ease-out !important;
+    }
+    
+    .clickedCorrectAnswer {
+      background: linear-gradient(45deg, #27ae60, #2ecc71) !important;
+      transform: scale(1.3) rotate(360deg) !important;
+      border: 4px solid #f39c12 !important;
+      box-shadow: 0 0 40px rgba(39,174,96,1) !important;
+    }
+    
+    .clickedWrongAnswer {
+      background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+      transform: scale(0.8) rotate(-180deg) !important;
+      opacity: 0.8;
+    }
+    
+    @keyframes correctReveal {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3) rotate(10deg); }
+      100% { transform: scale(1.2) rotate(0deg); }
+    }
+    
+    @keyframes wrongReveal {
+      0% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+    
+    .gameStats {
+      display: flex;
+      justify-content: space-around;
+      margin: 15px 0;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    
+    .lives {
+      color: #e74c3c;
+      background: rgba(255,255,255,0.9);
+      padding: 10px 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .points {
+      color: #27ae60;
+      background: rgba(255,255,255,0.9);
+      padding: 10px 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .celebration {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4em;
+      z-index: 1000;
+      animation: celebrate 1s ease-out;
+    }
+    
+    @keyframes celebrate {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+    
+    .intro-text {
+      font-size: 20px;
+      color: #2c3e50;
+      background: rgba(255,255,255,0.9);
+      padding: 15px;
+      border-radius: 15px;
+      margin: 20px auto;
+      width: 80%;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    
+    .language-selector {
+      background: rgba(255,255,255,0.9);
+      padding: 15px;
+      border-radius: 15px;
+      margin: 20px auto;
+      width: fit-content;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    
+    select {
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 2px solid #3498db;
+      background: white;
+    }
+    
+    .floating-emoji {
+      position: absolute;
+      font-size: 2em;
+      animation: float 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    /* Educational message box */
+    .educationalMessage {
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px auto;
+      width: 80%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      font-size: 18px;
+      font-weight: bold;
+      border-left: 6px solid #3498db;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎮 Super Learning Adventure! 🌟</h1>
+  <div class="intro-text">
+    🚀 Welcome to the most FUN way to learn! 🎯 Choose your subject and catch the falling answers! 
+    <br>🎪 Get ready for an EPIC learning adventure! 🎊
+  </div>
+
+  <!-- Subject Selection with enhanced styling -->
+  <div style="margin: 30px 0;">
+    <h2>🎯 Choose Your Learning Quest!</h2>
+    <button class="btn" onclick="startGame('math')">🔢 Math Magic</button>
+    <button class="btn" onclick="startGame('science')">🔬 Science Explorer</button>
+    <button class="btn" onclick="startGame('english')">📚 Word Wizard</button>
+  </div>
+
+  <!-- Language Switch -->
+  <div class="language-selector">
+    <label for="language">🌐 Select Language / भाषा चुनें / ଭାଷା ବାଛନ୍ତୁ: </label>
+    <select id="language" onchange="changeLanguage()">
+      <option value="en">🇬🇧 English</option>
+      <option value="hi">🇮🇳 हिन्दी</option>
+      <option value="or">🇮🇳 ଓଡ଼ିଆ</option>
+    </select>
+  </div>
+
+  <!-- Game Box -->
+  <div id="gameBox">
+    <h2 id="subjectTitle"></h2>
+    
+    <div class="gameStats">
+      <div class="lives" id="livesDisplay">❤️ Lives: 3</div>
+      <div class="points" id="pointsDisplay">⭐ Score: 0</div>
+    </div>
+    
+    <div id="questionBox" class="question"></div>
+    <div id="gameContainer"></div>
+    
+    <div id="scoreBox" class="score"></div>
+    <div id="educationalBox" class="educationalMessage" style="display: none;"></div>
+    
+    <button class="btn" onclick="nextQuestion()">➡️ Next Challenge!</button>
+    <br><br>
+    <button class="btn" onclick="showDashboard()">👩‍🏫 Teacher's Magic Board</button>
+  </div>
+
+  <!-- Enhanced Teacher Dashboard -->
+  <div id="teacherDashboard">
+    <h2>📊 🎉 Super Teacher Dashboard 🎉</h2>
+    <div class="dashboard">
+      <h3>🏆 Student Hall of Fame 🌟</h3>
+      <table>
+        <tr><th>🧑‍🎓 Student Hero</th><th>📖 Subject Quest</th><th>⭐ Achievement Score</th><th>🎖️ Badge</th></tr>
+        <tr><td>Ravi 🚀</td><td>Math Magic</td><td>2/3</td><td>🥈 Silver Star</td></tr>
+        <tr><td>Sita 🌟</td><td>Science Explorer</td><td>3/3</td><td>🥇 Gold Champion</td></tr>
+        <tr><td>Arun 📚</td><td>Word Wizard</td><td>1/3</td><td>🥉 Bronze Learner</td></tr>
+        <tr style="background: #f39c12; color: white;"><td><b>🎯 YOU! 🎯</b></td><td id="yourSub"></td><td id="yourScore"></td><td id="yourBadge"></td></tr>
+      </table>
+    </div>
+    <br>
+    <button class="btn" onclick="location.reload()">🔄 New Adventure!</button>
+  </div>
+
+<script>
+let currentSubject = '';
+let currentQuestion = 0;
+let score = 0;
+let lives = 3;
+let questions = {};
+let gameInterval;
+let fallingAnswers = [];
+let gameActive = true;
+
+// Enhanced question bank with more engaging content
+const questionBank = {
+  math: {
+    en: [
+      {q: "🔢 What's 2 + 2? (Easy peasy!)", options: ["3","4","5"], answer: "4"},
+      {q: "🎯 Calculate: 10 - 3 = ?", options: ["7","8","9"], answer: "7"},
+      {q: "✨ Magic multiplication: 5 × 2 = ?", options: ["8","10","12"], answer: "10"},
+      {q: "🧮 Brain teaser: 15 ÷ 3 = ?", options: ["4","5","6"], answer: "5"},
+      {q: "🎪 Fun challenge: 8 + 7 = ?", options: ["14","15","16"], answer: "15"}
+    ],
+    hi: [
+      {q: "🔢 क्या होगा २ + २ = ? (बहुत आसान!)", options: ["३","४","५"], answer: "४"},
+      {q: "🎯 हिसाब लगाओ: १० - ३ = ?", options: ["७","८","९"], answer: "७"},
+      {q: "✨ जादुई गुणा: ५ × २ = ?", options: ["८","१०","१२"], answer: "१०"},
+      {q: "🧮 दिमागी सवाल: १५ ÷ ३ = ?", options: ["४","५","६"], answer: "५"},
+      {q: "🎪 मजेदार चुनौती: ८ + ७ = ?", options: ["१४","१५","१६"], answer: "१५"}
+    ],
+    or: [
+      {q: "🔢 କଣ ହେବ ୨ + ୨ = ? (ବହୁତ ସହଜ!)", options: ["୩","୪","୫"], answer: "୪"},
+      {q: "🎯 ହିସାବ କର: ୧୦ - ୩ = ?", options: ["୭","୮","୯"], answer: "୭"},
+      {q: "✨ ଯାଦୁକରୀ ଗୁଣନ: ୫ × ୨ = ?", options: ["୮","୧୦","୧୨"], answer: "୧୦"},
+      {q: "🧮 ମାନସିକ ପ୍ରଶ୍ନ: ୧୫ ÷ ୩ = ?", options: ["୪","୫","୬"], answer: "୫"},
+      {q: "🎪 ମଜାଳିଆ ଚ୍ୟାଲେଞ୍ଜ: ୮ + ୭ = ?", options: ["୧୪","୧୫","୧୬"], answer: "୧୫"}
+    ]
+  },
+  science: {
+    en: [
+      {q: "🚀 Which planet is the RED PLANET?", options: ["Earth🌍","Mars🔴","Venus💫"], answer: "Mars🔴"},
+      {q: "🧊 At what temperature does water freeze?", options: ["0°C❄️","10°C","100°C🔥"], answer: "0°C❄️"},
+      {q: "💨 What gas do we breathe to live?", options: ["Oxygen💚","CO2","Nitrogen"], answer: "Oxygen💚"},
+      {q: "⭐ What makes plants green?", options: ["Water💧","Chlorophyll🌿","Sun☀️"], answer: "Chlorophyll🌿"},
+      {q: "🌙 How many phases does the moon have?", options: ["4🌓","6","8🌕"], answer: "8🌕"}
+    ],
+    hi: [
+      {q: "🚀 कौन सा ग्रह 'लाल ग्रह' है?", options: ["पृथ्वी🌍","मंगल🔴","शुक्र💫"], answer: "मंगल🔴"},
+      {q: "🧊 पानी कितने तापमान पर जमता है?", options: ["0°C❄️","10°C","100°C🔥"], answer: "0°C❄️"},
+      {q: "💨 हम कौन सी गैस सांस लेते हैं?", options: ["ऑक्सीजन💚","CO2","नाइट्रोजन"], answer: "ऑक्सीजन💚"},
+      {q: "⭐ पेड़-पौधे हरे क्यों होते हैं?", options: ["पानी💧","क्लोरोफिल🌿","सूरज☀️"], answer: "क्लोरोफिल🌿"},
+      {q: "🌙 चांद की कितनी अवस्थाएं हैं?", options: ["4🌓","6","8🌕"], answer: "8🌕"}
+    ],
+    or: [
+      {q: "🚀 କେଉଁ ଗ୍ରହ 'ଲାଲ ଗ୍ରହ' ?", options: ["ପୃଥିବୀ🌍","ମଙ୍ଗଳ🔴","ଶୁକ୍ର💫"], answer: "ମଙ୍ଗଳ🔴"},
+      {q: "🧊 ପାଣି କେତେ ତାପମାତ୍ରାରେ ବରଫ ହୁଏ?", options: ["0°C❄️","10°C","100°C🔥"], answer: "0°C❄️"},
+      {q: "💨 ଆମେ କେଉଁ ଗ୍ୟାସ ନିଶ୍ୱାସରେ ନିଅ?", options: ["ଅମ୍ଳଜାନ💚","CO2","ନାଇଟ୍ରୋଜେନ"], answer: "ଅମ୍ଳଜାନ💚"},
+      {q: "⭐ ଗଛ ସବୁଜ କାହିଁକି?", options: ["ପାଣି💧","କ୍ଲୋରୋଫିଲ🌿","ସୂର୍ଯ୍ୟ☀️"], answer: "କ୍ଲୋରୋଫିଲ🌿"},
+      {q: "🌙 ଚନ୍ଦ୍ରର କେତୋଟି ରୂପ?", options: ["4🌓","6","8🌕"], answer: "8🌕"}
+    ]
+  },
+  english: {
+    en: [
+      {q: "📝 Choose the CORRECT spelling:", options: ["Enviroment","Environment✅","Envaironment"], answer: "Environment✅"},
+      {q: "👶 What's the plural of 'Child'?", options: ["Childs","Children👥","Childrens"], answer: "Children👥"},
+      {q: "😊 Which word means the same as 'Happy'?", options: ["Sad😢","Joyful🎉","Angry😠"], answer: "Joyful🎉"},
+      {q: "🐱 What sound does a cat make?", options: ["Woof🐕","Meow🐱","Moo🐄"], answer: "Meow🐱"},
+      {q: "🌈 What has many colors after rain?", options: ["Cloud☁️","Rainbow🌈","Sun☀️"], answer: "Rainbow🌈"}
+    ],
+    hi: [
+      {q: "📝 सही वर्तनी चुनें:", options: ["एनवायरमेंट","एनवायरनमेंट✅","एनवैरमेंट"], answer: "एनवायरनमेंट✅"},
+      {q: "👶 'बच्चा' का बहुवचन क्या है?", options: ["बच्चाs","बच्चे👥","बच्चों"], answer: "बच्चे👥"},
+      {q: "😊 'खुश' का समानार्थी शब्द?", options: ["उदास😢","प्रसन्न🎉","गुस्सा😠"], answer: "प्रसन्न🎉"},
+      {q: "🐱 बिल्ली कैसी आवाज़ करती है?", options: ["भौं🐕","म्याऊं🐱","मू🐄"], answer: "म्याऊं🐱"},
+      {q: "🌈 बारिश के बाद आकाश में क्या दिखता है?", options: ["बादल☁️","इंद्रधनुष🌈","सूरज☀️"], answer: "इंद्रधनुष🌈"}
+    ],
+    or: [
+      {q: "📝 ସଠିକ୍ ବନାନ ବାଛନ୍ତୁ:", options: ["ଏନଭାୟରମେଣ୍ଟ","ଏନଭାୟରନମେଣ୍ଟ✅","ଏନଭୈରମେଣ୍ଟ"], answer: "ଏନଭାୟରନମେଣ୍ଟ✅"},
+      {q: "👶 'ପିଲା'ର ବହୁବଚନ କଣ?", options: ["ପିଲାs","ପିଲାମାନେ👥","ପିଲାମାନଙ୍କ"], answer: "ପିଲାମାନେ👥"},
+      {q: "😊 'ଖୁସି'ର ସମାନାର୍ଥକ?", options: ["ଦୁଃଖୀ😢","ଆନନ୍ଦିତ🎉","ରାଗୀ😠"], answer: "ଆନନ୍ଦିତ🎉"},
+      {q: "🐱 ବିଲେଇ କିପରି ଶବ୍ଦ କରେ?", options: ["ହଉ🐕","ମିଆଉଁ🐱","ମୋ🐄"], answer: "ମିଆଉଁ🐱"},
+      {q: "🌈 ବର୍ଷା ପରେ ଆକାଶରେ କଣ ଦେଖାଯାଏ?", options: ["ମେଘ☁️","ଇନ୍ଦ୍ରଧନୁ🌈","ସୂର୍ଯ୍ୟ☀️"], answer: "ଇନ୍ଦ୍ରଧନୁ🌈"}
+    ]
+  }
+};
+
+// Sound effects using Web Audio API
+function playSound(frequency, duration, type = 'sine') {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + duration);
+  } catch (e) {
+    console.log("Audio not supported");
+  }
+}
+
+// Enhanced sound effects
+function playCorrectSound() {
+  playSound(523, 0.2); // C note
+  setTimeout(() => playSound(659, 0.2), 100); // E note
+  setTimeout(() => playSound(784, 0.3), 200); // G note
+}
+
+function playWrongSound() {
+  playSound(200, 0.5, 'sawtooth');
+}
+
+function playGameStartSound() {
+  playSound(440, 0.1);
+  setTimeout(() => playSound(554, 0.1), 100);
+  setTimeout(() => playSound(659, 0.2), 200);
+}
+
+function playLevelCompleteSound() {
+  for(let i = 0; i < 5; i++) {
+    setTimeout(() => playSound(523 + i * 50, 0.1), i * 100);
+  }
+}
+
+// Add floating emojis for visual effect
+function createFloatingEmoji(emoji, x, y) {
+  const emojiElement = document.createElement('div');
+  emojiElement.className = 'floating-emoji';
+  emojiElement.innerText = emoji;
+  emojiElement.style.left = x + 'px';
+  emojiElement.style.top = y + 'px';
+  document.body.appendChild(emojiElement);
+  
+  setTimeout(() => {
+    emojiElement.remove();
+  }, 3000);
+}
+
+// Show celebration animation
+function showCelebration(type) {
+  const celebrationDiv = document.createElement('div');
+  celebrationDiv.className = 'celebration';
+  
+  if(type === 'correct') {
+    celebrationDiv.innerText = '🎉';
+    createFloatingEmoji('⭐', Math.random() * window.innerWidth, Math.random() * 200);
+    createFloatingEmoji('🌟', Math.random() * window.innerWidth, Math.random() * 200);
+  } else if(type === 'wrong') {
+    celebrationDiv.innerText = '😅';
+    createFloatingEmoji('💫', Math.random() * window.innerWidth, Math.random() * 200);
+  } else if(type === 'complete') {
+    celebrationDiv.innerText = '🏆';
+    for(let i = 0; i < 10; i++) {
+      setTimeout(() => {
+        createFloatingEmoji('🎊', Math.random() * window.innerWidth, Math.random() * 300);
+      }, i * 100);
+    }
+  }
+  
+  document.body.appendChild(celebrationDiv);
+  setTimeout(() => celebrationDiv.remove(), 1000);
+}
+
+// Start game with enhanced effects
+function startGame(subject) {
+  playGameStartSound();
+  currentSubject = subject;
+  currentQuestion = 0;
+  score = 0;
+  lives = 3;
+  gameActive = true;
+  questions = questionBank[subject][document.getElementById('language').value];
+  
+  const subjectEmojis = {
+    'math': '🔢 MATH MAGIC QUEST! 🎯',
+    'science': '🔬 SCIENCE ADVENTURE! 🚀',
+    'english': '📚 WORD WIZARD CHALLENGE! ✨'
+  };
+  
+  document.getElementById('subjectTitle').innerText = subjectEmojis[subject];
+  document.getElementById('gameBox').style.display = 'block';
+  document.getElementById('teacherDashboard').style.display = 'none';
+  document.getElementById('educationalBox').style.display = 'none';
+  updateGameStats();
+  loadQuestion();
+  
+  // Add some celebration emojis when starting
+  for(let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      createFloatingEmoji('🎮', Math.random() * window.innerWidth, Math.random() * 200);
+    }, i * 200);
+  }
+}
+
+// Change language mid-game
+function changeLanguage() {
+  if(currentSubject) {
+    questions = questionBank[currentSubject][document.getElementById('language').value];
+    stopFalling();
+    loadQuestion();
+  }
+}
+
+// Enhanced game statistics display
+function updateGameStats() {
+  const heartsArray = ['💖', '💝', '💗', '💕', '💓'];
+  const starsArray = ['⭐', '🌟', '✨', '🎆', '🎇'];
+  
+  document.getElementById('livesDisplay').innerHTML = 
+    heartsArray[lives % heartsArray.length] + ' Lives: ' + lives;
+  document.getElementById('pointsDisplay').innerHTML = 
+    starsArray[score % starsArray.length] + ' Score: ' + score;
+}
+
+// Enhanced question loading with motivational text
+function loadQuestion() {
+  stopFalling();
+  gameActive = true;
+  document.getElementById('educationalBox').style.display = 'none';
+  
+  if(currentQuestion < questions.length && lives > 0) {
+    const motivationalPrefixes = [
+      "🎯 Ready for this? ", "🚀 Here comes a fun one! ", "⚡ Quick thinking needed! ",
+      "🌟 You've got this! ", "🎪 Challenge time! "
+    ];
+    
+    const prefix = motivationalPrefixes[currentQuestion % motivationalPrefixes.length];
+    document.getElementById('questionBox').innerText = prefix + questions[currentQuestion].q;
+    document.getElementById('scoreBox').innerText = '';
+    startFallingAnswers();
+  } else if(lives <= 0) {
+    playWrongSound();
+    document.getElementById('scoreBox').innerHTML = "💀 Game Over! But hey, you tried! 🌟<br>Final Score: " + score + "/" + questions.length;
+    document.getElementById('questionBox').innerText = '🔄 Ready to try again? You can do better! 💪';
+    showCelebration('wrong');
+  } else {
+    playLevelCompleteSound();
+    document.getElementById('scoreBox').innerHTML = "🎉 AMAZING! You're a CHAMPION! 🏆<br>Perfect Score: " + score + "/" + questions.length;
+    document.getElementById('questionBox').innerText = '👑 You are absolutely INCREDIBLE! 🎊';
+    showCelebration('complete');
+  }
+}
+
+// Plain falling answers - no special colors initially
+function startFallingAnswers() {
+  const container = document.getElementById('gameContainer');
+  container.innerHTML = '';
+  fallingAnswers = [];
+  
+  const currentQ = questions[currentQuestion];
+  const containerWidth = container.offsetWidth;
+  
+  currentQ.options.forEach((option, index) => {
+    const answerDiv = document.createElement('div');
+    answerDiv.className = 'fallingAnswer'; // All answers look the same initially
+    answerDiv.innerText = option;
+    answerDiv.style.left = (index * (containerWidth / currentQ.options.length) + 30) + 'px';
+    answerDiv.style.top = '-50px';
+    
+    // NO special styling for correct answer initially
+    
+    answerDiv.onclick = () => {
+      if(gameActive) {
+        catchAnswer(option, answerDiv);
+      }
+    };
+    
+    container.appendChild(answerDiv);
+    fallingAnswers.push({element: answerDiv, answer: option});
+  });
+  
+  gameInterval = setInterval(moveAnswers, 40);
+}
+
+// Enhanced answer movement
+function moveAnswers() {
+  if(!gameActive) return;
+  
+  const container = document.getElementById('gameContainer');
+  const containerHeight = container.offsetHeight;
+  
+  fallingAnswers.forEach((item, index) => {
+    const currentTop = parseInt(item.element.style.top) || 0;
+    const newTop = currentTop + 4;
+    
+    if(newTop > containerHeight - 60) {
+      if(item.answer === questions[currentQuestion].answer) {
+        lives--;
+        updateGameStats();
+        playWrongSound();
+        document.getElementById('scoreBox').innerHTML = '😱 Oops! The correct answer escaped! Try to catch it faster next time! ⚡';
+        showCelebration('wrong');
+        if(lives <= 0) {
+          gameActive = false;
+          stopFalling();
+          setTimeout(() => loadQuestion(), 2000);
+          return;
+        }
+      }
+      item.element.remove();
+      fallingAnswers.splice(index, 1);
+    } else {
+      item.element.style.top = newTop + 'px';
+    }
+  });
+  
+  if(fallingAnswers.length === 0) {
+    stopFalling();
+  }
+}
+
+// NEW: Reveal correct answer ONLY when wrong answer is clicked
+function revealCorrectAnswerOnMistake() {
+  const currentQ = questions[currentQuestion];
+  
+  // Highlight all answers to show which was correct
+  fallingAnswers.forEach(item => {
+    const element = item.element;
+    
+    if(item.answer === currentQ.answer) {
+      // Highlight the correct answer in bright green
+      element.classList.add('revealedCorrectAnswer');
+      element.classList.remove('fallingAnswer');
+      
+      // Add educational message
+      setTimeout(() => {
+        const educationalBox = document.getElementById('educationalBox');
+        educationalBox.innerHTML = `
+          <strong>📚 Learn:</strong> The correct answer was <strong>"${currentQ.answer}"</strong> 
+          <br>✅ Now you know! Remember this for next time! 🧠
+        `;
+        educationalBox.style.display = 'block';
+      }, 1000);
+      
+    } else {
+      // Make wrong answers fade out
+      element.classList.add('revealedWrongAnswer');
+      element.classList.remove('fallingAnswer');
+    }
+    
+    // Stop any further clicking
+    element.onclick = null;
+  });
+}
+
+// Enhanced answer catching - reveal ONLY on wrong answer
+function catchAnswer(selected, element) {
+  if(!gameActive) return;
+  
+  gameActive = false;
+  stopFalling();
+  
+  const encouragingMessages = [
+    "🌟 Fantastic! ", "🚀 Brilliant! ", "⭐ Excellent! ", "🎯 Perfect! ", "🎉 Amazing! "
+  ];
+  
+  const tryAgainMessages = [
+    "😊 Almost! ", "💪 Good try! ", "🌟 Close one! ", "🎯 Nice attempt! ", "💫 Keep going! "
+  ];
+  
+  if(selected === questions[currentQuestion].answer) {
+    // CORRECT ANSWER - just celebrate, no reveal needed
+    score++;
+    playCorrectSound();
+    showCelebration('correct');
+    const message = encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
+    document.getElementById('scoreBox').innerHTML = message + 'You caught the right answer! +1 point! 🎊';
+    
+    // Just make the correct answer glow
+    element.classList.add('clickedCorrectAnswer');
+    element.classList.remove('fallingAnswer');
+    
+    // Add sparkle effect
+    createFloatingEmoji('✨', element.offsetLeft, element.offsetTop);
+    createFloatingEmoji('⭐', element.offsetLeft + 50, element.offsetTop);
+    
+  } else {
+    // WRONG ANSWER - NOW reveal the correct answer
+    lives--;
+    playWrongSound();
+    showCelebration('wrong');
+    const message = tryAgainMessages[Math.floor(Math.random() * tryAgainMessages.length)];
+    document.getElementById('scoreBox').innerHTML = 
+      message + `Wrong choice! Let me show you the correct answer! 💪`;
+    
+    // Make clicked wrong answer shake
+    element.classList.add('clickedWrongAnswer');
+    element.classList.remove('fallingAnswer');
+    
+    // NOW reveal the correct answer in green
+    revealCorrectAnswerOnMistake();
+  }
+  
+  updateGameStats();
+  
+  // Clear clicking for all answers
+  fallingAnswers.forEach(item => {
+    item.element.onclick = null;
+  });
+}
+
+function stopFalling() {
+  if(gameInterval) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+  }
+}
+
+function nextQuestion() {
+  if(lives > 0) {
+    currentQuestion++;
+    loadQuestion();
+    playSound(440, 0.1); // Next question sound
+  }
+}
+
+// Enhanced dashboard with badges
+function showDashboard() {
+  stopFalling();
+  document.getElementById('gameBox').style.display = 'none';
+  document.getElementById('teacherDashboard').style.display = 'block';
+  document.getElementById('yourSub').innerText = currentSubject.toUpperCase() + ' MASTER!';
+  document.getElementById('yourScore').innerText = score + "/" + questions.length;
+  
+  // Determine badge based on performance
+  let badge = '';
+  const percentage = (score / questions.length) * 100;
+  if(percentage === 100) badge = '🏆 LEGEND!';
+  else if(percentage >= 80) badge = '🥇 CHAMPION!';
+  else if(percentage >= 60) badge = '🥈 STAR!';
+  else if(percentage >= 40) badge = '🥉 FIGHTER!';
+  else badge = '🌟 LEARNER!';
+  
+  document.getElementById('yourBadge').innerText = badge;
+  
+  playLevelCompleteSound();
+  showCelebration('complete');
+}
+
+// Add some floating emojis on page load
+window.addEventListener('load', () => {
+  const welcomeEmojis = ['🎮', '📚', '🌟', '🚀', '🎯', '🎊'];
+  for(let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const emoji = welcomeEmojis[Math.floor(Math.random() * welcomeEmojis.length)];
+      createFloatingEmoji(emoji, Math.random() * window.innerWidth, Math.random() * 300);
+    }, i * 500);
+  }
+});
+
+</script>
+
+</body>
+</html>
